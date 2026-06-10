@@ -11,22 +11,31 @@ const CARD_RATIO = 1.4
 const FACE_DOWN_RATIO = 0.17
 const FACE_UP_RATIO = 0.33
 
-function useCardSize() {
-  const [cardWidth, setCardWidth] = useState(BASE_CARD_WIDTH)
+interface Layout {
+  cardWidth: number
+  colGap: number
+  sidePad: number
+}
+
+function computeLayout(vw: number): Layout {
+  // Scale gaps and padding down on narrow screens so all 7 columns always fit
+  const colGap = vw < 480 ? 4 : 8
+  const sidePad = vw < 480 ? 6 : 12
+  const maxCardWidth = Math.floor((vw - sidePad * 2 - colGap * 6) / 7)
+  const cardWidth = Math.min(BASE_CARD_WIDTH, Math.max(40, maxCardWidth))
+  return { cardWidth, colGap, sidePad }
+}
+
+function useLayout(): Layout {
+  const [layout, setLayout] = useState<Layout>(() => computeLayout(window.innerWidth))
 
   useEffect(() => {
-    const update = () => {
-      const vw = window.innerWidth
-      // 7 columns + 6 gaps of 8px + side padding of 24px
-      const maxWidth = Math.floor((vw - 24 - 6 * 8) / 7)
-      setCardWidth(Math.min(BASE_CARD_WIDTH, Math.max(52, maxWidth)))
-    }
-    update()
+    const update = () => setLayout(computeLayout(window.innerWidth))
     window.addEventListener('resize', update)
     return () => window.removeEventListener('resize', update)
   }, [])
 
-  return cardWidth
+  return layout
 }
 
 interface Props {
@@ -54,7 +63,7 @@ export function GameBoard({ game }: Props) {
     validDestinations,
   } = game
 
-  const cardWidth = useCardSize()
+  const { cardWidth, colGap, sidePad } = useLayout()
   const cardHeight = Math.round(cardWidth * CARD_RATIO)
   const faceDownOffset = Math.round(cardHeight * FACE_DOWN_RATIO)
   const faceUpOffset = Math.round(cardHeight * FACE_UP_RATIO)
@@ -115,7 +124,15 @@ export function GameBoard({ game }: Props) {
   )
 
   return (
-    <div className={styles.board} style={{ ['--card-width' as string]: `${cardWidth}px`, ['--card-height' as string]: `${cardHeight}px` }}>
+    <div
+      className={styles.board}
+      style={{
+        ['--card-width' as string]: `${cardWidth}px`,
+        ['--card-height' as string]: `${cardHeight}px`,
+        ['--col-gap' as string]: `${colGap}px`,
+        ['--side-pad' as string]: `${sidePad}px`,
+      }}
+    >
       <GameHeader
         score={state.score}
         moveCount={state.moveCount}
