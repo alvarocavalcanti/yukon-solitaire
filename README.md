@@ -1,5 +1,7 @@
 # Yukon Solitaire
 
+**[▶ Play it here](https://alvarocavalcanti.github.io/yukon-solitaire/)**
+
 A web-based implementation of Yukon Solitaire built with React and TypeScript, designed with Android conversion in mind via Capacitor.
 
 ## Rules
