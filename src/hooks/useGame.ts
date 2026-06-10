@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { computeFinalScore } from '../game/scoring'
-import { loadBestRecords, saveBestRecords } from '../game/storage'
-import type { BestRecords } from '../game/storage'
+import { clearGameSession, loadBestRecords, loadGameSession, saveBestRecords, saveGameSession } from '../game/storage'
+import type { BestRecords, SavedSession } from '../game/storage'
 import type { GameState, ValidDestination } from '../game/types'
 import type { HintMove, LastMove } from '../game/yukon'
 import { createInitialState, findHint, gameReducer, getValidDestinations } from '../game/yukon'
@@ -28,21 +28,23 @@ export interface GameAPI {
 }
 
 export function useGame(): GameAPI {
+  const [session] = useState<SavedSession | null>(loadGameSession)
+
   const [state, dispatch] = useReducer(gameReducer, undefined, () =>
-    createInitialState(Date.now())
+    session ? { ...session.state, selectedCell: null } : createInitialState(Date.now())
   )
   const [bestRecords, setBestRecords] = useState<BestRecords>(loadBestRecords)
   const [timerRunning, setTimerRunning] = useState(false)
-  const { elapsed, reset: resetTimer } = useTimer(timerRunning)
+  const { elapsed, reset: resetTimer } = useTimer(timerRunning, session?.elapsed ?? 0)
   const [hintMove, setHintMove] = useState<HintMove | null>(null)
   const [hintNoMoves, setHintNoMoves] = useState(false)
   const noMovesTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lastMoveRef = useRef<LastMove | null>(null)
-  const [historyLength, setHistoryLength] = useState(0)
+  const [historyLength, setHistoryLength] = useState(session?.history.length ?? 0)
   const winHandled = useRef(false)
-  const elapsedRef = useRef(0)
+  const elapsedRef = useRef(session?.elapsed ?? 0)
   const stateRef = useRef(state)
-  const historyRef = useRef<GameState[]>([])
+  const historyRef = useRef<GameState[]>(session?.history ?? [])
   const [finalScore, setFinalScore] = useState<number | null>(null)
 
   // Keep refs up to date on every render
@@ -61,8 +63,15 @@ export function useGame(): GameAPI {
       setFinalScore(fs)
       const updated = saveBestRecords(e, state.moveCount, fs)
       setBestRecords(updated)
+      clearGameSession()
     }
   }, [state.status, state.score, state.moveCount, timerRunning])
+
+  // Persist session after every move, new deal, or restart
+  useEffect(() => {
+    if (state.status === 'won') return  // cleared above on win
+    saveGameSession(state, elapsedRef.current, historyRef.current)
+  }, [state.moveCount, state.seed, state.status])
 
   // Clear hint after any move or on new deal/restart
   useEffect(() => {
@@ -99,6 +108,7 @@ export function useGame(): GameAPI {
 
   const newDeal = useCallback(() => {
     clearHistory()
+    clearGameSession()
     lastMoveRef.current = null
     setTimerRunning(false)
     setFinalScore(null)
