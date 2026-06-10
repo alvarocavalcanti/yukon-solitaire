@@ -35,6 +35,7 @@ export function createInitialState(seed: number): GameState {
     flipsCount: 0,
     status: 'idle',
     selectedCell: null,
+    selectedFoundation: null,
   }
 }
 
@@ -173,11 +174,29 @@ function autoFlipTop(column: Card[]): { column: Card[]; flipped: boolean } {
   return { column, flipped: false }
 }
 
+export function getFoundationCardDestinations(state: GameState, foundationIndex: number): ValidDestination[] {
+  const foundation = state.foundations[foundationIndex]
+  if (!foundation || foundation.length === 0) return []
+  const card = foundation[foundation.length - 1]
+  const destinations: ValidDestination[] = []
+  for (let col = 0; col < 7; col++) {
+    const column = state.tableau[col]
+    if (column.length === 0) {
+      if (canPlaceOnEmpty(card)) destinations.push({ type: 'tableau', index: col })
+    } else {
+      const top = column[column.length - 1]
+      if (canPlaceOnTableau(card, top)) destinations.push({ type: 'tableau', index: col })
+    }
+  }
+  return destinations
+}
+
 // ─── Scoring helpers ──────────────────────────────────────────────────────────
 
 const SCORE_PER_FOUNDATION = 10
 const SCORE_PER_FLIP = 5
 const SCORE_PER_MOVE = -1
+const SCORE_FOUNDATION_RETRIEVAL = -15
 
 function addScore(current: number, delta: number): number {
   return Math.max(0, current + delta)
@@ -190,9 +209,12 @@ export type GameAction =
   | { type: 'RESTART' }
   | { type: 'SELECT_CARD'; cell: SelectedCell }
   | { type: 'DESELECT' }
+  | { type: 'SELECT_FOUNDATION'; foundationIndex: number }
+  | { type: 'DESELECT_FOUNDATION' }
   | { type: 'MOVE_TO_TABLEAU'; dstCol: number }
   | { type: 'MOVE_TO_FOUNDATION'; foundationIndex: number }
   | { type: 'AUTO_MOVE_TO_FOUNDATION'; srcCol: number }
+  | { type: 'MOVE_FROM_FOUNDATION'; foundationIndex: number; dstCol: number }
   | { type: 'RESTORE_STATE'; payload: GameState }
 
 export function gameReducer(state: GameState, action: GameAction): GameState {
@@ -204,10 +226,16 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return createInitialState(state.seed)
 
     case 'SELECT_CARD':
-      return { ...state, selectedCell: action.cell }
+      return { ...state, selectedCell: action.cell, selectedFoundation: null }
 
     case 'DESELECT':
       return { ...state, selectedCell: null }
+
+    case 'SELECT_FOUNDATION':
+      return { ...state, selectedFoundation: action.foundationIndex, selectedCell: null }
+
+    case 'DESELECT_FOUNDATION':
+      return { ...state, selectedFoundation: null }
 
     case 'MOVE_TO_TABLEAU': {
       const { selectedCell, tableau } = state
@@ -329,6 +357,39 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         moveCount: state.moveCount + 1,
         status: won ? 'won' : 'playing',
         selectedCell: null,
+      }
+    }
+
+    case 'MOVE_FROM_FOUNDATION': {
+      const { foundationIndex, dstCol } = action
+      const foundation = state.foundations[foundationIndex]
+      if (foundation.length === 0) return state
+
+      const card = foundation[foundation.length - 1]
+      const dstColumn = state.tableau[dstCol]
+      const valid =
+        dstColumn.length === 0
+          ? canPlaceOnEmpty(card)
+          : canPlaceOnTableau(card, dstColumn[dstColumn.length - 1])
+      if (!valid) return state
+
+      const newFoundations = state.foundations.map((f, i) =>
+        i === foundationIndex ? f.slice(0, -1) : f
+      )
+      const newTableau = state.tableau.map((col, i) =>
+        i === dstCol ? [...col, { ...card, faceUp: true }] : col
+      )
+      const score = addScore(state.score, SCORE_FOUNDATION_RETRIEVAL + SCORE_PER_MOVE)
+
+      return {
+        ...state,
+        foundations: newFoundations,
+        tableau: newTableau,
+        score,
+        moveCount: state.moveCount + 1,
+        status: 'playing',
+        selectedCell: null,
+        selectedFoundation: null,
       }
     }
 

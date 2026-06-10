@@ -23,6 +23,7 @@ export interface GameState {
   flipsCount: number
   status: GameStatus
   selectedCell: SelectedCell | null
+  selectedFoundation: number | null
 }
 
 export interface ValidDestination {

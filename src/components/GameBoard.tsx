@@ -56,9 +56,12 @@ export function GameBoard({ game }: Props) {
     undo,
     selectCard,
     deselect,
+    selectFoundation,
+    deselectFoundation,
     moveToTableau,
     moveToFoundation,
     autoMoveToFoundation,
+    moveFromFoundation,
     showHint,
     validDestinations,
   } = game
@@ -75,20 +78,24 @@ export function GameBoard({ game }: Props) {
       const card = state.tableau[col][cardIndex]
       if (!card.faceUp) return
 
+      // Foundation card selected → try to drop here
+      if (state.selectedFoundation !== null) {
+        const dest = validDestinations.find(d => d.type === 'tableau' && d.index === col)
+        if (dest) { moveFromFoundation(state.selectedFoundation, col); return }
+        deselectFoundation()
+        return
+      }
+
       if (state.selectedCell) {
         const dest = validDestinations.find(d => d.type === 'tableau' && d.index === col)
-        if (dest) {
-          moveToTableau(col)
-          return
-        }
+        if (dest) { moveToTableau(col); return }
         if (state.selectedCell.col === col && state.selectedCell.cardIndex === cardIndex) {
-          deselect()
-          return
+          deselect(); return
         }
       }
       selectCard(col, cardIndex)
     },
-    [state.selectedCell, state.tableau, validDestinations, moveToTableau, deselect, selectCard]
+    [state.selectedCell, state.selectedFoundation, state.tableau, validDestinations, moveToTableau, moveFromFoundation, deselect, deselectFoundation, selectCard]
   )
 
   const handleCardDoubleClick = useCallback(
@@ -100,20 +107,38 @@ export function GameBoard({ game }: Props) {
 
   const handleEmptyColumnClick = useCallback(
     (col: number) => {
+      if (state.selectedFoundation !== null) {
+        const dest = validDestinations.find(d => d.type === 'tableau' && d.index === col)
+        if (dest) { moveFromFoundation(state.selectedFoundation, col); return }
+        deselectFoundation()
+        return
+      }
       if (!state.selectedCell) return
       const dest = validDestinations.find(d => d.type === 'tableau' && d.index === col)
       if (dest) moveToTableau(col)
     },
-    [state.selectedCell, validDestinations, moveToTableau]
+    [state.selectedCell, state.selectedFoundation, validDestinations, moveToTableau, moveFromFoundation, deselectFoundation]
   )
 
   const handleFoundationClick = useCallback(
     (fIdx: number) => {
-      if (!state.selectedCell) return
-      const dest = validDestinations.find(d => d.type === 'foundation' && d.index === fIdx)
-      if (dest) moveToFoundation(fIdx)
+      // Tableau card selected → move to foundation
+      if (state.selectedCell) {
+        const dest = validDestinations.find(d => d.type === 'foundation' && d.index === fIdx)
+        if (dest) { moveToFoundation(fIdx); return }
+        deselect()
+        return
+      }
+      // Foundation card selected → toggle or switch
+      if (state.selectedFoundation !== null) {
+        if (state.selectedFoundation === fIdx) deselectFoundation()
+        else selectFoundation(fIdx)
+        return
+      }
+      // Nothing selected → select this foundation pile (if it has cards)
+      if (state.foundations[fIdx].length > 0) selectFoundation(fIdx)
     },
-    [state.selectedCell, validDestinations, moveToFoundation]
+    [state.selectedCell, state.selectedFoundation, state.foundations, validDestinations, moveToFoundation, deselect, deselectFoundation, selectFoundation]
   )
 
   const handleBoardClick = useCallback(
@@ -158,6 +183,7 @@ export function GameBoard({ game }: Props) {
               suitIndex={i}
               isValidDest={validDestinations.some(d => d.type === 'foundation' && d.index === i)}
               isHintDest={hintMove !== null && hintMove.dest.type === 'foundation' && hintMove.dest.index === i}
+              isSelected={state.selectedFoundation === i}
               onClick={() => handleFoundationClick(i)}
               cardWidth={cardWidth}
               cardHeight={cardHeight}

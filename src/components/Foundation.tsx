@@ -22,12 +22,13 @@ interface Props {
   suitIndex: number
   isValidDest: boolean
   isHintDest: boolean
+  isSelected: boolean
   onClick: () => void
   cardWidth: number
   cardHeight: number
 }
 
-export function Foundation({ cards, suitIndex, isValidDest, isHintDest, onClick, cardWidth, cardHeight }: Props) {
+export function Foundation({ cards, suitIndex, isValidDest, isHintDest, isSelected, onClick, cardWidth, cardHeight }: Props) {
   const suit = SUIT_ORDER[suitIndex]
   const topCard = cards[cards.length - 1]
 
@@ -37,6 +38,7 @@ export function Foundation({ cards, suitIndex, isValidDest, isHintDest, onClick,
         styles.foundation,
         isValidDest ? styles.validDest : '',
         isHintDest ? styles.hintDest : '',
+        isSelected ? styles.selected : '',
       ]
         .filter(Boolean)
         .join(' ')}

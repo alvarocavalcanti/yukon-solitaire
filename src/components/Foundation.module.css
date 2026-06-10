@@ -29,3 +29,9 @@
   outline-offset: 1px;
   box-shadow: 0 0 14px rgba(39, 174, 96, 0.55);
 }
+
+.selected {
+  outline: 3px solid #ffd700;
+  outline-offset: 1px;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.6);
+}

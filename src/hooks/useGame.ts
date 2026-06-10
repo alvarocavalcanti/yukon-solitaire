@@ -4,7 +4,7 @@ import { clearGameSession, loadBestRecords, loadGameSession, saveBestRecords, sa
 import type { BestRecords, SavedSession } from '../game/storage'
 import type { GameState, ValidDestination } from '../game/types'
 import type { HintMove, LastMove } from '../game/yukon'
-import { createInitialState, findHint, gameReducer, getValidDestinations } from '../game/yukon'
+import { createInitialState, findHint, gameReducer, getFoundationCardDestinations, getValidDestinations } from '../game/yukon'
 import { useTimer } from './useTimer'
 
 export interface GameAPI {
@@ -20,9 +20,12 @@ export interface GameAPI {
   undo: () => void
   selectCard: (col: number, cardIndex: number) => void
   deselect: () => void
+  selectFoundation: (foundationIndex: number) => void
+  deselectFoundation: () => void
   moveToTableau: (dstCol: number) => void
   moveToFoundation: (foundationIndex: number) => void
   autoMoveToFoundation: (srcCol: number) => void
+  moveFromFoundation: (foundationIndex: number, dstCol: number) => void
   showHint: () => void
   validDestinations: ValidDestination[]
 }
@@ -31,7 +34,9 @@ export function useGame(): GameAPI {
   const [session] = useState<SavedSession | null>(loadGameSession)
 
   const [state, dispatch] = useReducer(gameReducer, undefined, () =>
-    session ? { ...session.state, selectedCell: null } : createInitialState(Date.now())
+    session
+      ? { ...session.state, selectedCell: null, selectedFoundation: null }
+      : createInitialState(Date.now())
   )
   const [bestRecords, setBestRecords] = useState<BestRecords>(loadBestRecords)
   const [timerRunning, setTimerRunning] = useState(false)
@@ -153,6 +158,13 @@ export function useGame(): GameAPI {
 
   const deselect = useCallback(() => dispatch({ type: 'DESELECT' }), [])
 
+  const selectFoundation = useCallback(
+    (foundationIndex: number) => dispatch({ type: 'SELECT_FOUNDATION', foundationIndex }),
+    []
+  )
+
+  const deselectFoundation = useCallback(() => dispatch({ type: 'DESELECT_FOUNDATION' }), [])
+
   const moveToTableau = useCallback((dstCol: number) => {
     pushHistory()
     const cell = stateRef.current.selectedCell
@@ -173,6 +185,12 @@ export function useGame(): GameAPI {
     pushHistory()
     lastMoveRef.current = null
     dispatch({ type: 'AUTO_MOVE_TO_FOUNDATION', srcCol })
+  }, [pushHistory])
+
+  const moveFromFoundation = useCallback((foundationIndex: number, dstCol: number) => {
+    pushHistory()
+    lastMoveRef.current = null
+    dispatch({ type: 'MOVE_FROM_FOUNDATION', foundationIndex, dstCol })
   }, [pushHistory])
 
   const showHint = useCallback(() => {
@@ -196,6 +214,9 @@ export function useGame(): GameAPI {
   }, [hintMove])
 
   const validDestinations = useMemo<ValidDestination[]>(() => {
+    if (state.selectedFoundation !== null) {
+      return getFoundationCardDestinations(state, state.selectedFoundation)
+    }
     if (!state.selectedCell) return []
     return getValidDestinations(state, state.selectedCell.col, state.selectedCell.cardIndex)
   }, [state])
@@ -213,9 +234,12 @@ export function useGame(): GameAPI {
     undo,
     selectCard,
     deselect,
+    selectFoundation,
+    deselectFoundation,
     moveToTableau,
     moveToFoundation,
     autoMoveToFoundation,
+    moveFromFoundation,
     showHint,
     validDestinations,
   }
