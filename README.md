@@ -4,6 +4,12 @@
 
 A web-based implementation of Yukon Solitaire built with React and TypeScript, designed with Android conversion in mind via Capacitor.
 
+If you enjoy the game, consider supporting:
+
+[![Buy Me A Coffee](https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png)](https://www.buymeacoffee.com/alvarocavalcanti)
+
+[![Support on Ko-fi](https://storage.ko-fi.com/cdn/kofi6.png?v=6)](https://ko-fi.com/O4O1WSP5B)
+
 ## Rules
 
 Yukon Solitaire is a variant of Klondike with one key difference: **any face-up card — and all face-up cards stacked on top of it — can be moved as a group**, regardless of whether they form a proper sequence. The only placement rule is that the bottom card of the moving group must be one lower in rank and opposite in colour from the top card of the destination column.

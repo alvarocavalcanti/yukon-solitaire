@@ -14,6 +14,7 @@ interface Props {
   onRestart: () => void
   onHint: () => void
   onUndo: () => void
+  onAbout: () => void
 }
 
 export function GameHeader({
@@ -28,6 +29,7 @@ export function GameHeader({
   onRestart,
   onHint,
   onUndo,
+  onAbout,
 }: Props) {
   return (
     <header className={styles.header}>
@@ -72,6 +74,7 @@ export function GameHeader({
         </button>
         <button className={styles.btn} onClick={onNewDeal}>New Deal</button>
         <button className={styles.btn} onClick={onRestart}>Restart</button>
+        <button className={styles.btnAbout} onClick={onAbout} aria-label="About">?</button>
       </div>
     </header>
   )

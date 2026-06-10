@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { GameAPI } from '../hooks/useGame'
+import { AboutDialog } from './AboutDialog'
 import { Column } from './Column'
 import { Foundation } from './Foundation'
 import { GameHeader } from './GameHeader'
@@ -67,6 +68,7 @@ export function GameBoard({ game }: Props) {
   } = game
 
   const { cardWidth, colGap, sidePad } = useLayout()
+  const [showAbout, setShowAbout] = useState(false)
   const cardHeight = Math.round(cardWidth * CARD_RATIO)
   const faceDownOffset = Math.round(cardHeight * FACE_DOWN_RATIO)
   const faceUpOffset = Math.round(cardHeight * FACE_UP_RATIO)
@@ -170,6 +172,7 @@ export function GameBoard({ game }: Props) {
         onRestart={restart}
         onHint={showHint}
         onUndo={undo}
+        onAbout={() => setShowAbout(true)}
       />
 
       <div className={styles.playArea} ref={boardRef} onClick={handleBoardClick}>
@@ -212,6 +215,8 @@ export function GameBoard({ game }: Props) {
           ))}
         </div>
       </div>
+
+      {showAbout && <AboutDialog onClose={() => setShowAbout(false)} />}
 
       {state.status === 'won' && finalScore !== null && (
         <WinDialog
