@@ -154,6 +154,18 @@ export function findHint(state: GameState, lastMove: LastMove | null = null): Hi
   return null
 }
 
+export function findAutoFoundationMove(state: GameState): number | null {
+  for (let col = 0; col < 7; col++) {
+    const column = state.tableau[col]
+    if (column.length === 0) continue
+    const card = column[column.length - 1]
+    if (!card.faceUp) continue
+    const fIdx = SUIT_ORDER.indexOf(card.suit as Suit)
+    if (canPlaceOnFoundation(card, state.foundations[fIdx])) return col
+  }
+  return null
+}
+
 // ─── Win detection ────────────────────────────────────────────────────────────
 
 function isWon(foundations: Card[][]): boolean {

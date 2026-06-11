@@ -4,7 +4,7 @@ import { clearGameSession, loadBestRecords, loadGameSession, saveBestRecords, sa
 import type { BestRecords, SavedSession } from '../game/storage'
 import type { GameState, ValidDestination } from '../game/types'
 import type { HintMove, LastMove } from '../game/yukon'
-import { createInitialState, findHint, gameReducer, getFoundationCardDestinations, getValidDestinations } from '../game/yukon'
+import { createInitialState, findAutoFoundationMove, findHint, gameReducer, getFoundationCardDestinations, getValidDestinations } from '../game/yukon'
 import { useTimer } from './useTimer'
 
 export interface GameAPI {
@@ -44,6 +44,7 @@ export function useGame(): GameAPI {
   const [hintMove, setHintMove] = useState<HintMove | null>(null)
   const [hintNoMoves, setHintNoMoves] = useState(false)
   const noMovesTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const autoCompleteRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const lastMoveRef = useRef<LastMove | null>(null)
   const [historyLength, setHistoryLength] = useState(session?.history.length ?? 0)
   const winHandled = useRef(false)
@@ -96,6 +97,35 @@ export function useGame(): GameAPI {
     document.addEventListener('visibilitychange', handleVisibility)
     return () => document.removeEventListener('visibilitychange', handleVisibility)
   }, [])
+
+  // Auto-complete: when every card is face-up, move bottom cards to foundation at 2/sec
+  const allFaceUp = useMemo(
+    () =>
+      state.status === 'playing' &&
+      state.tableau.some(col => col.length > 0) &&
+      state.tableau.every(col => col.every(card => card.faceUp)),
+    [state.tableau, state.status]
+  )
+
+  useEffect(() => {
+    if (!allFaceUp) {
+      if (autoCompleteRef.current !== null) {
+        clearInterval(autoCompleteRef.current)
+        autoCompleteRef.current = null
+      }
+      return
+    }
+    autoCompleteRef.current = setInterval(() => {
+      const srcCol = findAutoFoundationMove(stateRef.current)
+      if (srcCol !== null) dispatch({ type: 'AUTO_MOVE_TO_FOUNDATION', srcCol })
+    }, 500)
+    return () => {
+      if (autoCompleteRef.current !== null) {
+        clearInterval(autoCompleteRef.current)
+        autoCompleteRef.current = null
+      }
+    }
+  }, [allFaceUp])
 
   // ── History helpers ──────────────────────────────────────────────────────────
 
