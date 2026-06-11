@@ -4,6 +4,7 @@ import { clearGameSession, loadBestRecords, loadGameSession, saveBestRecords, sa
 import type { BestRecords, SavedSession } from '../game/storage'
 import type { GameState, ValidDestination } from '../game/types'
 import type { HintMove, LastMove } from '../game/yukon'
+import { trackEvent } from '../analytics'
 import { createInitialState, findAutoFoundationMove, findHint, gameReducer, getFoundationCardDestinations, getValidDestinations } from '../game/yukon'
 import { useTimer } from './useTimer'
 
@@ -70,6 +71,7 @@ export function useGame(): GameAPI {
       const updated = saveBestRecords(e, state.moveCount, fs)
       setBestRecords(updated)
       clearGameSession()
+      trackEvent('win', { score: fs, moves: state.moveCount, time: e })
     }
   }, [state.status, state.score, state.moveCount, timerRunning])
 
@@ -148,6 +150,7 @@ export function useGame(): GameAPI {
     setTimerRunning(false)
     setFinalScore(null)
     resetTimer()
+    trackEvent('new-deal')
     dispatch({ type: 'NEW_DEAL', seed: Date.now() })
   }, [clearHistory, resetTimer])
 
