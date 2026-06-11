@@ -28,6 +28,22 @@
 .foundationSpacer {
   flex: 1;
   min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.autoCompleteMsg {
+  font-family: Georgia, serif;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.55);
+  font-style: italic;
+  letter-spacing: 0.03em;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 0.9; }
 }
 
 .tableau {

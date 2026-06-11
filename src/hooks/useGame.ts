@@ -16,6 +16,7 @@ export interface GameAPI {
   hintMove: HintMove | null
   hintNoMoves: boolean
   canUndo: boolean
+  autoCompleting: boolean
   newDeal: () => void
   restart: () => void
   undo: () => void
@@ -262,6 +263,7 @@ export function useGame(): GameAPI {
     hintMove,
     hintNoMoves,
     canUndo: historyLength > 0,
+    autoCompleting: allFaceUp,
     newDeal,
     restart,
     undo,

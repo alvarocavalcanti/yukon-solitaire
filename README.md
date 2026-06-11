@@ -31,7 +31,7 @@ Yukon Solitaire is a variant of Klondike with one key difference: **any face-up 
 - **Best records** — best final score, fastest time, and fewest moves persisted in localStorage
 - **Session persistence** — game state (including timer) is saved to localStorage and restored on page refresh
 - **Foundation retrieval** — cards can be moved back from a foundation to the tableau (−15 score penalty)
-- **Auto-complete** — once all cards are face-up, eligible bottom cards move to the foundations automatically at two moves per second; pauses if no move is available and resumes when the player frees a card
+- **Auto-complete** — once all cards are face-up, eligible bottom cards move to the foundations automatically at two moves per second; an "Auto-completing…" label appears top-left while active; pauses if no move is available and resumes when the player frees a card
 - **Responsive layout** — card size adapts so all 7 columns always fit on narrow screens
 
 ## Interaction

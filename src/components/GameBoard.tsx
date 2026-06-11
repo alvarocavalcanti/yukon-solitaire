@@ -52,6 +52,7 @@ export function GameBoard({ game }: Props) {
     hintMove,
     hintNoMoves,
     canUndo,
+    autoCompleting,
     newDeal,
     restart,
     undo,
@@ -178,7 +179,11 @@ export function GameBoard({ game }: Props) {
       <div className={styles.playArea} ref={boardRef} onClick={handleBoardClick}>
         {/* Foundation row */}
         <div className={styles.foundationRow}>
-          <div className={styles.foundationSpacer} />
+          <div className={styles.foundationSpacer}>
+            {autoCompleting && (
+              <div className={styles.autoCompleteMsg}>Auto-completing…</div>
+            )}
+          </div>
           {state.foundations.map((cards, i) => (
             <Foundation
               key={i}
