@@ -9,7 +9,6 @@ interface Props {
   finalScore: number
   bestRecords: BestRecords
   onNewDeal: () => void
-  onRestart: () => void
 }
 
 export function WinDialog({
@@ -19,7 +18,6 @@ export function WinDialog({
   finalScore,
   bestRecords,
   onNewDeal,
-  onRestart,
 }: Props) {
   const timeBonus = computeTimeBonus(elapsed)
   const isNewBestScore = bestRecords.bestScore === finalScore
@@ -64,9 +62,6 @@ export function WinDialog({
         <div className={styles.actions}>
           <button className={styles.btnPrimary} onClick={onNewDeal}>
             New Deal
-          </button>
-          <button className={styles.btnSecondary} onClick={onRestart}>
-            Play Again
           </button>
         </div>
       </div>

@@ -226,7 +226,6 @@ export function GameBoard({ game }: Props) {
           finalScore={finalScore}
           bestRecords={bestRecords}
           onNewDeal={newDeal}
-          onRestart={restart}
         />
       )}
     </div>
