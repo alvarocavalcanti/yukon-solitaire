@@ -10,7 +10,7 @@ import styles from './GameBoard.module.css'
 const BASE_CARD_WIDTH = 90
 const CARD_RATIO = 1.4
 const FACE_DOWN_RATIO = 0.17
-const FACE_UP_RATIO = 0.33
+const FACE_UP_RATIO = 0.36
 
 interface Layout {
   cardWidth: number

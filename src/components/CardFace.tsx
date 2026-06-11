@@ -25,10 +25,13 @@ export function CardFace({ card, width, height }: Props) {
   const label = RANK_LABEL[card.rank]
 
   const r = width * 0.07
-  const pad = width * 0.09
-  // Rank is bigger; suit slightly smaller — both extend toward center
-  const rankSize = height * 0.46
-  const suitSize = height * 0.36
+  const pad = height * 0.05
+  const rankSize = height * 0.27
+  const suitInlineSize = height * 0.22
+  const bigSuitSize = height * 0.48
+
+  // Estimate rank text width so we can place the suit inline after it
+  const rankCharWidth = label.length > 1 ? rankSize * 1.05 : rankSize * 0.68
 
   return (
     <svg
@@ -40,7 +43,7 @@ export function CardFace({ card, width, height }: Props) {
     >
       <rect x={0} y={0} width={width} height={height} rx={r} ry={r} fill="#fdfaf5" />
 
-      {/* Rank — top-left, hangs downward toward center */}
+      {/* Rank — top-left */}
       <text
         x={pad}
         y={pad}
@@ -54,15 +57,28 @@ export function CardFace({ card, width, height }: Props) {
         {label}
       </text>
 
-      {/* Suit — bottom-right, grows upward toward center */}
+      {/* Suit — inline, right of rank */}
       <text
-        x={width - pad}
-        y={height - pad}
-        fontSize={suitSize}
+        x={pad + rankCharWidth + rankSize * 0.2}
+        y={pad + (rankSize - suitInlineSize) * 0.5}
+        fontSize={suitInlineSize}
         fontFamily="Georgia, serif"
         fill={color}
-        textAnchor="end"
-        dominantBaseline="alphabetic"
+        textAnchor="start"
+        dominantBaseline="hanging"
+      >
+        {symbol}
+      </text>
+
+      {/* Large centered suit symbol for the lower portion of the card */}
+      <text
+        x={width / 2}
+        y={height * 0.67}
+        fontSize={bigSuitSize}
+        fontFamily="Georgia, serif"
+        fill={color}
+        textAnchor="middle"
+        dominantBaseline="middle"
       >
         {symbol}
       </text>
@@ -126,7 +142,6 @@ export function CardBack({ width, height }: BackProps) {
         </pattern>
       </defs>
       <rect x={0} y={0} width={width} height={height} rx={r} ry={r} fill="url(#card-back-pattern)" />
-      {/* Border frame */}
       <rect
         x={width * 0.07}
         y={height * 0.04}
