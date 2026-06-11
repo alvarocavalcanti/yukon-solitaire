@@ -27,8 +27,20 @@ Yukon Solitaire is a variant of Klondike with one key difference: **any face-up 
 - **Undo** — unlimited; each undo costs one move
 - **Hint** — highlights a suggested move in green; shows "Try Undo" when no productive move is found
 - **Timer** — starts on the first move, pauses when the tab loses focus
-- **Scoring** — +10 per foundation placement, +5 per hidden card revealed, −1 per move, time bonus at win
-- **Best records** — best score, fastest time, and fewest moves persisted across sessions
+- **Scoring** — +10 per foundation placement, +5 per hidden card revealed, −1 per move, −15 for moving a card back from a foundation; time bonus at win (under 3 min: +500, under 6 min: +300, under 10 min: +100)
+- **Best records** — best final score, fastest time, and fewest moves persisted in localStorage
+- **Session persistence** — game state (including timer) is saved to localStorage and restored on page refresh
+- **Foundation retrieval** — cards can be moved back from a foundation to the tableau (−15 score penalty)
+- **Auto-complete** — once all cards are face-up, eligible bottom cards move to the foundations automatically at two moves per second; pauses if no move is available and resumes when the player frees a card
+- **Responsive layout** — card size adapts so all 7 columns always fit on narrow screens
+
+## Interaction
+
+- **Click** a face-up card to select it (and all face-up cards above it in the column)
+- **Click** a highlighted destination to move the selected group
+- **Click** the selected card again, or anywhere neutral, to deselect
+- **Double-click** the top card of a column to auto-move it to its foundation
+- **Click** a foundation pile to select its top card, then click a valid tableau column to move it back
 
 ## Tech stack
 
@@ -58,33 +70,3 @@ npm run build
 ```
 
 The `dist/` folder is ready to be packaged with Capacitor for Android.
-
-## Project structure
-
-```
-src/
-├── game/
-│   ├── types.ts       # Shared types (Card, GameState, …)
-│   ├── deck.ts        # Deck creation and seeded shuffle (mulberry32 PRNG)
-│   ├── yukon.ts       # Deal, move validation, reducer, hint logic
-│   ├── scoring.ts     # Score and time-bonus calculations
-│   └── storage.ts     # localStorage best-record persistence
-├── hooks/
-│   ├── useGame.ts     # Main game hook — wraps reducer, timer, history
-│   └── useTimer.ts    # Seconds counter, pauses on visibility change
-└── components/
-    ├── CardFace.tsx   # SVG card face and back rendering
-    ├── Card.tsx       # Card wrapper with selection/hint/valid-dest styles
-    ├── Column.tsx     # Tableau column with stacked card layout
-    ├── Foundation.tsx # Foundation pile slot
-    ├── GameHeader.tsx # Score, timer, move count, action buttons
-    ├── GameBoard.tsx  # Layout root, interaction dispatcher
-    └── WinDialog.tsx  # Win overlay with score breakdown
-```
-
-## Interaction
-
-- **Click** a face-up card to select it (and all face-up cards above it in the column)
-- **Click** a highlighted destination to move
-- **Double-click** the top card of a column to auto-move it to the foundation
-- **Click** the selected card again, or anywhere neutral, to deselect
